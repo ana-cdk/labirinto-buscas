@@ -16,7 +16,6 @@ class COLOR(Enum):
 class agent:
 
     def __init__(self,parentMaze,x=None,y=None,shape='square',goal=None,filled=False,footprints=False,color:COLOR=COLOR.blue):
-
         self._parentMaze=parentMaze
         self.color=color
         if(isinstance(color,str)):
@@ -133,9 +132,7 @@ class agent:
         self.y=newpos[1]
         self._position=newpos
     def _RCCW(self):
-        '''
-        To Rotate the agent in Counter Clock Wise direction
-        '''
+
         def pointNew(p,newOrigin):
             return (p[0]-newOrigin[0],p[1]-newOrigin[1])
         w=self._parentMaze._cell_width
@@ -152,42 +149,7 @@ class agent:
         self._parentMaze._canvas.coords(self._head,*self._coord)
         self._orient=(self._orient-1)%4
  
-        
-    def _RCW(self):
-        '''
-        To Rotate the agent in Clock Wise direction
-        '''
-        def pointNew(p,newOrigin):
-            return (p[0]-newOrigin[0],p[1]-newOrigin[1])
-        w=self._parentMaze._cell_width
-        x=self.x*w-w+self._parentMaze._LabWidth
-        y=self.y*w-w+self._parentMaze._LabWidth
-        cent=(y+w/2,x+w/2)
-        p1=pointNew((self._coord[0],self._coord[1]),cent)
-        p2=pointNew((self._coord[2],self._coord[3]),cent)
-        p1CW=(-p1[1],p1[0])
-        p2CW=(-p2[1],p2[0])
-        p1=p1CW[0]+cent[0],p1CW[1]+cent[1]
-        p2=p2CW[0]+cent[0],p2CW[1]+cent[1]
-        self._coord=(*p1,*p2)  
-        self._parentMaze._canvas.coords(self._head,*self._coord)
-        self._orient=(self._orient+1)%4
-
-
-    def moveRight(self,event):
-        if self._parentMaze.maze_map[self.x,self.y]['E']==True:
-            self.y=self.y+1
-    def moveLeft(self,event):
-        if self._parentMaze.maze_map[self.x,self.y]['W']==True:
-            self.y=self.y-1
-    def moveUp(self,event):
-        if self._parentMaze.maze_map[self.x,self.y]['N']==True:
-            self.x=self.x-1
-            self.y=self.y
-    def moveDown(self,event):
-        if self._parentMaze.maze_map[self.x,self.y]['S']==True:
-            self.x=self.x+1
-            self.y=self.y
+    
 class textLabel:
 
     def __init__(self,parentMaze,title,value):
@@ -504,8 +466,6 @@ class maze:
                 f.truncate()
 
     def _drawMaze(self,theme):
-  
-        
         self._LabWidth=26 # Space from the top for Labels
         self._win=Tk()
         self._win.state('zoomed')
@@ -564,191 +524,6 @@ class maze:
         if self.maze_map[cell]['S']==False:
             self._canvas.create_line(y, x + w, y + w, x + w,width=2,fill=theme.value[1])
 
-
-    _tracePathList=[]
-    def _tracePathSingle(self,a,p,kill,showMarked,delay):
-
-        
-        def killAgent(a):
-    
-            for i in range(len(a._body)):
-                self._canvas.delete(a._body[i])
-            self._canvas.delete(a._head) 
-        w=self._cell_width
-        if((a.x,a.y) in self.markCells and showMarked):
-            w=self._cell_width
-            x=a.x*w-w+self._LabWidth
-            y=a.y*w-w+self._LabWidth
-            self._canvas.create_oval(y + w/2.5+w/20, x + w/2.5+w/20,y + w/2.5 +w/4-w/20, x + w/2.5 +w/4-w/20,fill='red',outline='red',tag='ov')
-            self._canvas.tag_raise('ov')
-       
-        if (a.x,a.y)==(a.goal):
-            del maze._tracePathList[0][0][a]
-            if maze._tracePathList[0][0]=={}:
-                del maze._tracePathList[0]
-                if len(maze._tracePathList)>0:
-                    self.tracePath(maze._tracePathList[0][0],kill=maze._tracePathList[0][1],delay=maze._tracePathList[0][2])
-            if kill:
-                self._win.after(300, killAgent,a)         
-            return
-        # If path is provided as Dictionary
-        if(type(p)==dict):
-            if(len(p)==0):
-                del maze._tracePathList[0][0][a]
-                return
-            if a.shape=='arrow':
-                old=(a.x,a.y)
-                new=p[(a.x,a.y)]
-                o=a._orient
-                
-                if old!=new:
-                    if old[0]==new[0]:
-                        if old[1]>new[1]:
-                            mov=3#'W' #3
-                        else:
-                            mov=1#'E' #1
-                    else:
-                        if old[0]>new[0]:
-                            mov=0#'N' #0
-
-                        else:
-                            mov=2#'S' #2
-                    if mov-o==2:
-                        a._RCW()
-
-                    if mov-o==-2:
-                        a._RCW()
-                    if mov-o==1:
-                        a._RCW()
-                    if mov-o==-1:
-                        a._RCCW()
-                    if mov-o==3:
-                        a._RCCW()
-                    if mov-o==-3:
-                        a._RCW()
-                    if mov==o:
-                        a.x,a.y=p[(a.x,a.y)]
-                else:
-                    del p[(a.x,a.y)]
-            else:    
-                a.x,a.y=p[(a.x,a.y)]
-        # If path is provided as String
-        if (type(p)==str):
-            if(len(p)==0):
-                del maze._tracePathList[0][0][a]
-                if maze._tracePathList[0][0]=={}:
-                    del maze._tracePathList[0]
-                    if len(maze._tracePathList)>0:
-                        self.tracePath(maze._tracePathList[0][0],kill=maze._tracePathList[0][1],delay=maze._tracePathList[0][2])
-                if kill:
-                    
-                    self._win.after(300, killAgent,a)         
-                return
-            if a.shape=='arrow':
-                old=(a.x,a.y)
-                new=p[0]
-                o=a._orient
-                if new=='N': mov=0
-                elif new=='E': mov=1
-                elif new=='S': mov=2
-                elif new=='W': mov=3
-                
-                if mov-o==2:
-                    a._RCW()
-
-                if mov-o==-2:
-                    a._RCW()
-                if mov-o==1:
-                    a._RCW()
-                if mov-o==-1:
-                    a._RCCW()
-                if mov-o==3:
-                    a._RCCW()
-                if mov-o==-3:
-                    a._RCW()
-            if a.shape=='square' or mov==o:    
-                move=p[0]
-                if move=='E':
-                    if a.y+1<=self.cols:
-                        a.y+=1
-                elif move=='W':
-                    if a.y-1>0:
-                        a.y-=1
-                elif move=='N':
-                    if a.x-1>0:
-                        a.x-=1
-                        a.y=a.y
-                elif move=='S':
-                    if a.x+1<=self.rows:
-                        a.x+=1
-                        a.y=a.y
-                elif move=='C':
-                    a._RCW()
-                elif move=='A':
-                    a._RCCW()
-                p=p[1:]
-        # If path is provided as List
-        if (type(p)==list):
-            if(len(p)==0):
-                del maze._tracePathList[0][0][a]
-                if maze._tracePathList[0][0]=={}:
-                    del maze._tracePathList[0]
-                    if len(maze._tracePathList)>0:
-                        self.tracePath(maze._tracePathList[0][0],kill=maze._tracePathList[0][1],delay=maze._tracePathList[0][2])
-                if kill:                    
-                    self._win.after(300, killAgent,a)  
-                return
-            if a.shape=='arrow':
-                old=(a.x,a.y)
-                new=p[0]
-                o=a._orient
-                
-                if old!=new:
-                    if old[0]==new[0]:
-                        if old[1]>new[1]:
-                            mov=3#'W' #3
-                        else:
-                            mov=1#'E' #1
-                    else:
-                        if old[0]>new[0]:
-                            mov=0#'N' #0
-
-                        else:
-                            mov=2#'S' #2
-                    if mov-o==2:
-                        a._RCW()
-
-                    elif mov-o==-2:
-                        a._RCW()
-                    elif mov-o==1:
-                        a._RCW()
-                    elif mov-o==-1:
-                        a._RCCW()
-                    elif mov-o==3:
-                        a._RCCW()
-                    elif mov-o==-3:
-                        a._RCW()
-                    elif mov==o:
-                        a.x,a.y=p[0]
-                        del p[0]
-                else:
-                    del p[0]
-            else:    
-                a.x,a.y=p[0]
-                del p[0]
-
-        self._win.after(delay, self._tracePathSingle,a,p,kill,showMarked,delay)    
-
-    def tracePath(self,d,kill=False,delay=300,showMarked=False):
-        '''
-        A method to trace path by agent
-        You can provide more than one agent/path details
-        '''
-        self._tracePathList.append((d,kill,delay))
-        if maze._tracePathList[0][0]==d: 
-            for a,p in d.items():
-                if a.goal!=(a.x,a.y) and len(p)!=0:
-                    self._tracePathSingle(a,p,kill,showMarked,delay)
     def run(self):
         '''
         Finally to run the Tkinter Main Loop
