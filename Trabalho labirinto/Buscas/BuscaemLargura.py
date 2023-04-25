@@ -1,8 +1,7 @@
 from pyamaze import maze,agent,textLabel,COLOR
 from collections import deque
-from timeit import time
+from timeit import timeit
 
-tempo_inicial = time.time()
 
 m=maze(0,0)    
 
@@ -58,7 +57,7 @@ if __name__=='__main__':
              m.CreateMaze(saveMaze=True, loopPercent=10,theme='dark')
         elif resposta == 'N':    
             m.CreateMaze(loopPercent=10,theme='dark')
-
+    
     bSearch,bfsPath,fwdPath=BFS(m)
     a=agent(m,footprints=True,color=COLOR.blue,shape='square',filled=True)
     b=agent(m,footprints=True,color=COLOR.red,shape='square',filled=False)
@@ -66,11 +65,8 @@ if __name__=='__main__':
     m.tracePath({a:bSearch},delay=100)
     m.tracePath({c:bfsPath},delay=100)
     m.tracePath({b:fwdPath},delay=100)
+
     l=textLabel(m,'Busca cega: tamanho do caminho',len(fwdPath)+1)
     l=textLabel(m,'Busca cega: tamanho da busca',len(bSearch))
-    
-    tempo_final = time.time()
-    time = int(tempo_final - tempo_inicial)
-    textLabel(m,'BFS Time',  time)
 
     m.run()
